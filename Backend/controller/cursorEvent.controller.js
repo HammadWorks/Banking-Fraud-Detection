@@ -9,28 +9,25 @@ const CursorEventHandler = async (req, res) => {
             return res.status(400).json({ error: 'Missing sessionId or events array' });
         }
 
-        // Check session count
-        const sessionIds = await CursorEvent.distinct('sessionId');
-        const sessionCount = sessionIds.length;
-        if (sessionCount >= 100) {
-            // Find and delete the oldest session
-            const oldestSession = await CursorEvent.findOne().sort({ createdAt: 1 });
-            if (oldestSession) {
-                await CursorEvent.deleteMany({ sessionId: oldestSession.sessionId });
+        // Limit to 100 session documents
+        const count = await CursorEvent.countDocuments();
+        if (count >= 100) {
+            // Delete the oldest document (FIFO)
+            const oldest = await CursorEvent.findOne().sort({ createdAt: 1 });
+            if (oldest) {
+                await CursorEvent.deleteOne({ _id: oldest._id });
             }
         }
 
-        // Save all events for this session
-        const savedEvents = await CursorEvent.insertMany(
-            events.map(ev => ({
-                sessionId,
-                time_ms: ev.time_ms,
-                x: ev.x,
-                y: ev.y
-            }))
-        );
+        // Transform events into arrays
+        const time_ms = events.map(ev => ev.time_ms);
+        const x = events.map(ev => ev.x);
+        const y = events.map(ev => ev.y);
 
-        res.status(201).json({ message: 'Events saved', count: savedEvents.length });
+        // Save as one document per session
+        await CursorEvent.create({ sessionId, time_ms, x, y });
+
+        res.status(201).json({ message: 'Events saved', count: events.length });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
