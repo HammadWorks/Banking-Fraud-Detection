@@ -20,6 +20,10 @@ export const detectFraud = async (amount, recipientId, userId) => {
     const newbalanceOrig = oldbalanceOrig - Number(amount);
     const newbalanceDest = oldbalanceDest + Number(amount);
 
+    if(oldbalanceOrig - oldbalanceDest > 1000000) {
+      return true;
+    }
+
     const payload = {
       type: typeMap['TRANSFER'],
       amount: Number(amount),

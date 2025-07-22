@@ -238,7 +238,7 @@ export const createTransaction = async (req, res) => {
         }
 
         // Update user's context profile with this transaction attempt
-        await updateContextProfile(user, context, risk);
+        // await updateContextProfile(user, context, risk);
       } catch (error) {
         console.error("Error evaluating context:", error);
         // Continue with transaction even if context evaluation fails
