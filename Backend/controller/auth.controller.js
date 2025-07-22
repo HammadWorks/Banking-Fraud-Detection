@@ -193,6 +193,8 @@ export const login = async (req, res) => {
           context
         );
 
+        await updateContextProfile(user, context, risk);
+
         return res.status(200).json({
           success: true,
           message: "Two-factor authentication required",
