@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import User from "../models/user.model.js";
 
 const typeMap = {
@@ -6,9 +6,8 @@ const typeMap = {
   CASH_OUT: 1,
   DEBIT: 2,
   PAYMENT: 3,
-  TRANSFER: 4
+  TRANSFER: 4,
 };
-
 
 export const detectFraud = async (amount, recipientId, userId) => {
   try {
@@ -20,20 +19,25 @@ export const detectFraud = async (amount, recipientId, userId) => {
     const newbalanceOrig = oldbalanceOrig - Number(amount);
     const newbalanceDest = oldbalanceDest + Number(amount);
 
-    if(oldbalanceOrig - oldbalanceDest > 1000000) {
+    const balanceDiff = oldbalanceOrig - oldbalanceDest;
+
+    if (balanceDiff > 1000000 && amount > balanceDiff * 0.3) {
       return true;
     }
-
+    
     const payload = {
-      type: typeMap['TRANSFER'],
+      type: typeMap["TRANSFER"],
       amount: Number(amount),
       oldbalanceOrig,
       newbalanceOrig,
       oldbalanceDest,
-      newbalanceDest
+      newbalanceDest,
     };
 
-    const response = await axios.post('http://localhost:5001/predict-fraud', payload);
+    const response = await axios.post(
+      "http://localhost:5001/predict-fraud",
+      payload
+    );
     const prediction = response.data?.prediction;
     const probability = response.data?.probability;
 
